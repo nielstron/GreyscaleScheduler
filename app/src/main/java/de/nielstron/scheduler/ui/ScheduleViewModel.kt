@@ -13,6 +13,7 @@ import de.nielstron.scheduler.util.GrayscaleController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 
 class ScheduleViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = SchedulePreferences(application)
@@ -30,6 +31,7 @@ class ScheduleViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             prefs.scheduleFlow.collect { schedule ->
                 _schedule.value = schedule
+                applyScheduleNow(schedule)
             }
         }
     }
@@ -38,6 +40,7 @@ class ScheduleViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             prefs.saveSchedule(schedule)
             AlarmScheduler.scheduleAll(getApplication(), schedule)
+            applyScheduleNow(schedule)
         }
     }
 
@@ -47,6 +50,7 @@ class ScheduleViewModel(application: Application) : AndroidViewModel(application
 
     fun refreshGrayscaleState() {
         _grayscaleEnabled.value = GrayscaleController.isGrayscaleEnabled(getApplication())
+        applyScheduleNow(_schedule.value)
     }
 
     fun setGrayscale(enabled: Boolean): Boolean {
@@ -72,6 +76,25 @@ class ScheduleViewModel(application: Application) : AndroidViewModel(application
             secureSettingsGranted = secureSettingsGranted,
             exactAlarmsAllowed = exactAlarmsAllowed,
         )
+    }
+
+    private fun applyScheduleNow(schedule: Schedule) {
+        if (!schedule.enabled) {
+            setGrayscale(false)
+            return
+        }
+        val shouldEnable = isWithinSchedule(schedule, LocalTime.now())
+        setGrayscale(shouldEnable)
+    }
+
+    private fun isWithinSchedule(schedule: Schedule, now: LocalTime): Boolean {
+        val start = LocalTime.of(schedule.startHour, schedule.startMinute)
+        val end = LocalTime.of(schedule.endHour, schedule.endMinute)
+        return if (start < end) {
+            now >= start && now < end
+        } else {
+            now >= start || now < end
+        }
     }
 }
 

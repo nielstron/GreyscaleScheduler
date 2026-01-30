@@ -85,6 +85,19 @@ fun ScheduleScreen(
         endTime = LocalTime.of(schedule.endHour, schedule.endMinute)
     }
 
+    LaunchedEffect(enabled, startTime, endTime, schedule) {
+        val updatedSchedule = Schedule(
+            enabled = enabled,
+            startHour = startTime.hour,
+            startMinute = startTime.minute,
+            endHour = endTime.hour,
+            endMinute = endTime.minute,
+        )
+        if (updatedSchedule != schedule) {
+            viewModel.saveSchedule(updatedSchedule)
+        }
+    }
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -157,25 +170,6 @@ fun ScheduleScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    viewModel.saveSchedule(
-                        Schedule(
-                            enabled = enabled,
-                            startHour = startTime.hour,
-                            startMinute = startTime.minute,
-                            endHour = endTime.hour,
-                            endMinute = endTime.minute,
-                        )
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Save schedule")
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedButton(
                 onClick = {
