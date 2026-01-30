@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import de.nielstron.scheduler.data.SchedulePreferences
 import de.nielstron.scheduler.model.Schedule
 import de.nielstron.scheduler.scheduler.AlarmScheduler
+import de.nielstron.scheduler.util.GrayscaleController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -39,6 +40,10 @@ class ScheduleViewModel(application: Application) : AndroidViewModel(application
 
     fun refreshPermissions() {
         _permissions.value = refreshPermissionState()
+    }
+
+    fun setGrayscale(enabled: Boolean): Boolean {
+        return GrayscaleController.setGrayscale(getApplication(), enabled)
     }
 
     private fun refreshPermissionState(): PermissionState {

@@ -9,9 +9,14 @@ object GrayscaleController {
     private const val MONOCHROMACY = 0
 
     fun setGrayscale(context: Context, enabled: Boolean): Boolean {
-        val resolver = context.contentResolver
-        val modeSet = Settings.Secure.putInt(resolver, DALTONIZER_MODE, MONOCHROMACY)
-        val enabledSet = Settings.Secure.putInt(resolver, DALTONIZER_ENABLED, if (enabled) 1 else 0)
-        return modeSet && enabledSet
+        return try {
+            val resolver = context.contentResolver
+            val modeSet = Settings.Secure.putInt(resolver, DALTONIZER_MODE, MONOCHROMACY)
+            val enabledSet =
+                Settings.Secure.putInt(resolver, DALTONIZER_ENABLED, if (enabled) 1 else 0)
+            modeSet && enabledSet
+        } catch (exception: SecurityException) {
+            false
+        }
     }
 }

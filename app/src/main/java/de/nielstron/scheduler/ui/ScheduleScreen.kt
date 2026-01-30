@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import android.text.format.DateFormat
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -146,6 +147,24 @@ fun ScheduleScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Save schedule")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = {
+                    val success = viewModel.setGrayscale(true)
+                    if (!success) {
+                        Toast.makeText(
+                            context,
+                            "Missing WRITE_SECURE_SETTINGS permission.",
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Start grayscale now")
             }
 
             Spacer(modifier = Modifier.height(20.dp))
