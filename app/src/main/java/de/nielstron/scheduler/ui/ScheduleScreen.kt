@@ -167,7 +167,7 @@ fun ScheduleScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(if (grayscaleEnabled == true) "Stop grayscale now" else "Start grayscale now")
+                Text(if (grayscaleEnabled == true) "Stop grayscale" else "Start grayscale")
             }
 
             Spacer(modifier = Modifier.height(20.dp))
