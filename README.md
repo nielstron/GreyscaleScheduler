@@ -1,7 +1,6 @@
 # Greyscale Scheduler
 
-Greyscale Scheduler toggles system-wide grayscale on a daily schedule and lets you
-manually test the toggle from the app.
+Greyscale Scheduler toggles system-wide grayscale on a daily schedule.
 
 <img src="docs/screenshot.png" alt="App screenshot" width="50%">
 
