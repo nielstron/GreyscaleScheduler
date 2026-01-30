@@ -13,13 +13,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePicker
@@ -37,7 +46,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -62,6 +76,7 @@ fun ScheduleScreen(
     var endTime by remember { mutableStateOf(LocalTime.of(schedule.endHour, schedule.endMinute)) }
     var showStartPicker by remember { mutableStateOf(false) }
     var showEndPicker by remember { mutableStateOf(false) }
+    var showPermissionHelp by remember { mutableStateOf(false) }
 
     LaunchedEffect(schedule) {
         enabled = schedule.enabled
@@ -80,6 +95,14 @@ fun ScheduleScreen(
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
+    }
+
+    if (showPermissionHelp) {
+        PermissionHelpScreen(
+            secureSettingsGranted = permissions.secureSettingsGranted,
+            onBack = { showPermissionHelp = false },
+        )
+        return
     }
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
@@ -186,21 +209,8 @@ fun ScheduleScreen(
                 style = MaterialTheme.typography.bodySmall,
             )
             Spacer(modifier = Modifier.height(8.dp))
-            if (!permissions.secureSettingsGranted) {
-                val adbCommand =
-                    "adb shell pm grant ${context.packageName} android.permission.WRITE_SECURE_SETTINGS"
-                Text(
-                    text = "Grant it via ADB:",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                Text(
-                    text = adbCommand,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(onClick = { clipboardManager.setText(AnnotatedString(adbCommand)) }) {
-                    Text("Copy ADB command")
-                }
+            OutlinedButton(onClick = { showPermissionHelp = true }) {
+                Text("How to enable it")
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !permissions.exactAlarmsAllowed) {
@@ -244,6 +254,186 @@ fun ScheduleScreen(
                 showEndPicker = false
             },
         )
+    }
+}
+
+@Composable
+private fun PermissionHelpScreen(
+    secureSettingsGranted: Boolean,
+    onBack: () -> Unit,
+) {
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+    val uriHandler = LocalUriHandler.current
+    val adbCommand =
+        "adb shell pm grant ${context.packageName} android.permission.WRITE_SECURE_SETTINGS"
+    val adbDevicesCommand = "adb devices"
+    val platformToolsUrl = "https://developer.android.com/studio/releases/platform-tools"
+    val platformToolsText = buildAnnotatedString {
+        append("Install Android SDK Platform-Tools from: ")
+        val start = length
+        append(platformToolsUrl)
+        val end = length
+        addStringAnnotation(tag = "URL", annotation = platformToolsUrl, start = start, end = end)
+        addStyle(
+            style = SpanStyle(
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline,
+            ),
+            start = start,
+            end = end,
+        )
+    }
+    val scrollState = rememberScrollState()
+
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(20.dp)
+                .fillMaxSize()
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.Top,
+        ) {
+            Text(
+                text = "Enable WRITE_SECURE_SETTINGS",
+                style = MaterialTheme.typography.headlineSmall,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "This app toggles system-wide grayscale by writing secure settings. Android requires the privileged permission WRITE_SECURE_SETTINGS, which cannot be granted by the app itself.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "Step 1: Install ADB",
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            ClickableText(
+                text = platformToolsText,
+                style = MaterialTheme.typography.bodySmall,
+                onClick = { offset ->
+                    platformToolsText
+                        .getStringAnnotations(tag = "URL", start = offset, end = offset)
+                        .firstOrNull()
+                        ?.let { uriHandler.openUri(it.item) }
+                },
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Step 2: Enable Developer Options",
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Settings -> About phone -> tap Build number 7 times. Then enable USB debugging in Developer options.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Step 3: Connect the device",
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Connect via USB and accept the USB debugging prompt. Check that the device is listed as 'device' with:",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = MaterialTheme.shapes.small,
+                ) {
+                    Text(
+                        text = adbDevicesCommand,
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(onClick = { clipboardManager.setText(AnnotatedString(adbDevicesCommand)) }) {
+                    Icon(
+                        imageVector = Icons.Filled.ContentCopy,
+                        contentDescription = "Copy adb devices",
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Step 4: Grant the permission",
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = MaterialTheme.shapes.small,
+                ) {
+                    Text(
+                        text = adbCommand,
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(onClick = { clipboardManager.setText(AnnotatedString(adbCommand)) }) {
+                    Icon(
+                        imageVector = Icons.Filled.ContentCopy,
+                        contentDescription = "Copy ADB command",
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Step 5: Verify",
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Open the app and tap Start grayscale. If it works, the permission is active.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                OutlinedButton(
+                    onClick = {},
+                    enabled = false,
+                ) {
+                    Text(
+                        if (secureSettingsGranted) {
+                            "Permission was granted"
+                        } else {
+                            "Permission was not granted"
+                        }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(onClick = onBack) {
+                Text("Back")
+            }
+        }
     }
 }
 
