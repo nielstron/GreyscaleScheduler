@@ -1,45 +1,60 @@
 # Greyscale Scheduler
 
-This app toggles system-wide grayscale by writing secure settings. That requires the
-privileged permission `WRITE_SECURE_SETTINGS`. It cannot be granted by the app at runtime,
-so you must grant it via ADB.
+Greyscale Scheduler toggles system-wide grayscale on a daily schedule and lets you
+manually test the toggle from the app.
 
-## Grant WRITE_SECURE_SETTINGS via ADB
+## Build and Install
+
+Install required tools:
+- Gradle Wrapper (gradlew): https://docs.gradle.org/current/userguide/gradle_wrapper.html
+- ADB (Android Platform-Tools): https://developer.android.com/studio/releases/platform-tools
+
+From the project root:
+
+```sh
+./gradlew :app:assembleDebug
+```
 
 
-### 1) Enable Developer Options and USB debugging
-1. Open Settings -> About phone.
-2. Tap "Build number" 7 times to enable Developer Options.
-3. Go back to Settings -> Developer options.
-4. Enable "USB debugging".
-   - On some OEMs (e.g., Samsung/Xiaomi), you may also need:
-     - "USB debugging (Security settings)" or
-     - "Install via USB"
+The APK will be generated at:
+`app/build/outputs/apk/debug/app-debug.apk`
 
-### 2) Connect the device and authorize ADB
-1. Connect your device via USB.
-2. On your computer, verify ADB sees the device:
-   - `adb devices`
-3. If prompted on the device, allow USB debugging for this computer.
-   - You should see your device listed as `device` (not `unauthorized`).
+## Install
+With a device connected (USB debugging enabled):
 
-### 3) Grant the permission
-Grant the permission:
-- `adb shell pm grant de.nielstron.scheduler android.permission.WRITE_SECURE_SETTINGS`
+```sh
+./gradlew :app:installDebug
+```
 
-### 4) Verify
-1. Open the app.
-2. The "Secure settings permission granted" message should appear.
-3. Tap "Start grayscale now" to test.
+Or install the APK directly:
 
-## Revoke (if needed)
-You can revoke it with:
-- `adb shell pm revoke de.nielstron.scheduler android.permission.WRITE_SECURE_SETTINGS`
+```sh
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
 
-## Troubleshooting
-- If `adb devices` shows `unauthorized`, unplug/replug and accept the prompt on the device.
-- If `pm grant` fails:
-  - Confirm USB debugging is enabled.
-  - Check for OEM-specific "USB debugging (Security settings)" toggles.
-  - Make sure the app is installed on the device before running `pm grant`.
-  - Common Android Studio install path: `~/Library/Android/sdk/platform-tools/adb`
+## Enable WRITE_SECURE_SETTINGS (required for grayscale)
+The app needs the privileged permission `WRITE_SECURE_SETTINGS` to toggle system-wide grayscale.
+It cannot be granted by the app itself.
+
+1) Enable Developer Options and USB debugging
+- Settings -> About phone -> tap Build number 7 times.
+- Settings -> Developer options -> enable USB debugging.
+- Some OEMs also require "USB debugging (Security settings)" or "Install via USB".
+
+2) Connect the device and authorize ADB
+- Connect via USB and accept the USB debugging prompt.
+- Verify with `adb devices` (device should be listed as `device`, not `unauthorized`).
+
+3) Grant the permission
+```sh
+adb shell pm grant de.nielstron.scheduler android.permission.WRITE_SECURE_SETTINGS
+```
+
+4) Verify
+- Open the app; it should report the permission as granted.
+- Tap “Start grayscale” to test.
+
+Revoke if needed:
+```sh
+adb shell pm revoke de.nielstron.scheduler android.permission.WRITE_SECURE_SETTINGS
+```

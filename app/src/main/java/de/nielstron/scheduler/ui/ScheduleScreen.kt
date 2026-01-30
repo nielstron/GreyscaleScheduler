@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
@@ -287,151 +288,153 @@ private fun PermissionHelpScreen(
     val scrollState = rememberScrollState()
 
     Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(20.dp)
-                .fillMaxSize()
-                .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.Top,
-        ) {
-            Text(
-                text = "Enable WRITE_SECURE_SETTINGS",
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = "This app toggles system-wide grayscale by writing secure settings. Android requires the privileged permission WRITE_SECURE_SETTINGS, which cannot be granted by the app itself.",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = "Step 1: Install ADB",
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            ClickableText(
-                text = platformToolsText,
-                style = MaterialTheme.typography.bodySmall,
-                onClick = { offset ->
-                    platformToolsText
-                        .getStringAnnotations(tag = "URL", start = offset, end = offset)
-                        .firstOrNull()
-                        ?.let { uriHandler.openUri(it.item) }
-                },
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Step 2: Enable Developer Options",
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Settings -> About phone -> tap Build number 7 times. Then enable USB debugging in Developer options.",
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Step 3: Connect the device",
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Connect via USB and accept the USB debugging prompt. Check that the device is listed as 'device' with:",
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+        SelectionContainer {
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(20.dp)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState),
+                verticalArrangement = Arrangement.Top,
             ) {
-                Surface(
-                    modifier = Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = MaterialTheme.shapes.small,
-                ) {
-                    Text(
-                        text = adbDevicesCommand,
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = { clipboardManager.setText(AnnotatedString(adbDevicesCommand)) }) {
-                    Icon(
-                        imageVector = Icons.Filled.ContentCopy,
-                        contentDescription = "Copy adb devices",
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Enable WRITE_SECURE_SETTINGS",
+                    style = MaterialTheme.typography.headlineSmall,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "This app toggles system-wide grayscale by writing secure settings. Android requires the privileged permission WRITE_SECURE_SETTINGS, which cannot be granted by the app itself.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
 
-            Text(
-                text = "Step 4: Grant the permission",
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Surface(
-                    modifier = Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = MaterialTheme.shapes.small,
-                ) {
-                    Text(
-                        text = adbCommand,
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = { clipboardManager.setText(AnnotatedString(adbCommand)) }) {
-                    Icon(
-                        imageVector = Icons.Filled.ContentCopy,
-                        contentDescription = "Copy ADB command",
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Step 1: Install ADB",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                ClickableText(
+                    text = platformToolsText,
+                    style = MaterialTheme.typography.bodySmall,
+                    onClick = { offset ->
+                        platformToolsText
+                            .getStringAnnotations(tag = "URL", start = offset, end = offset)
+                            .firstOrNull()
+                            ?.let { uriHandler.openUri(it.item) }
+                    },
+                )
+                Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = "Step 5: Verify",
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Open the app and tap Start grayscale. If it works, the permission is active.",
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                OutlinedButton(
-                    onClick = {},
-                    enabled = false,
-                ) {
-                    Text(
-                        if (secureSettingsGranted) {
-                            "Permission was granted"
-                        } else {
-                            "Permission was not granted"
-                        }
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Step 2: Enable Developer Options",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "Settings -> About phone -> tap Build number 7 times. Then enable USB debugging in Developer options.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedButton(onClick = onBack) {
-                Text("Back")
+                Text(
+                    text = "Step 3: Connect the device",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "Connect via USB and accept the USB debugging prompt. Check that the device is listed as 'device' with:",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = MaterialTheme.shapes.small,
+                    ) {
+                        Text(
+                            text = adbDevicesCommand,
+                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(onClick = { clipboardManager.setText(AnnotatedString(adbDevicesCommand)) }) {
+                        Icon(
+                            imageVector = Icons.Filled.ContentCopy,
+                            contentDescription = "Copy adb devices",
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Step 4: Grant the permission",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = MaterialTheme.shapes.small,
+                    ) {
+                        Text(
+                            text = adbCommand,
+                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(onClick = { clipboardManager.setText(AnnotatedString(adbCommand)) }) {
+                        Icon(
+                            imageVector = Icons.Filled.ContentCopy,
+                            contentDescription = "Copy ADB command",
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Step 5: Verify",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "Open the app and tap Start grayscale. If it works, the permission is active.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    OutlinedButton(
+                        onClick = {},
+                        enabled = false,
+                    ) {
+                        Text(
+                            if (secureSettingsGranted) {
+                                "Permission was granted"
+                            } else {
+                                "Permission was not granted"
+                            }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedButton(onClick = onBack) {
+                    Text("Back")
+                }
             }
         }
     }
