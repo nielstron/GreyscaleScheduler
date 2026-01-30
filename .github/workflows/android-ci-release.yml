@@ -1,0 +1,70 @@
+name: Android CI + Release
+
+on:
+  push:
+    branches: ["main", "master"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["main", "master"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (CI)
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Gradle build
+        uses: gradle/gradle-build-action@v3
+        with:
+          arguments: assembleDebug
+
+  release:
+    name: Build + Release
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build release artifacts
+        uses: gradle/gradle-build-action@v3
+        with:
+          arguments: |
+            assembleRelease
+            bundleRelease
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/*.apk dist/
+          cp app/build/outputs/bundle/release/*.aab dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
