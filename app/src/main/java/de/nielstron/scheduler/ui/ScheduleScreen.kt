@@ -52,6 +52,7 @@ fun ScheduleScreen(
 ) {
     val schedule by viewModel.schedule.collectAsState()
     val permissions by viewModel.permissions.collectAsState()
+    val grayscaleEnabled by viewModel.grayscaleEnabled.collectAsState()
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -72,6 +73,7 @@ fun ScheduleScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 viewModel.refreshPermissions()
+                viewModel.refreshGrayscaleState()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -153,7 +155,8 @@ fun ScheduleScreen(
 
             OutlinedButton(
                 onClick = {
-                    val success = viewModel.setGrayscale(true)
+                    val enableGrayscale = grayscaleEnabled != true
+                    val success = viewModel.setGrayscale(enableGrayscale)
                     if (!success) {
                         Toast.makeText(
                             context,
@@ -164,7 +167,7 @@ fun ScheduleScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Start grayscale now")
+                Text(if (grayscaleEnabled == true) "Stop grayscale now" else "Start grayscale now")
             }
 
             Spacer(modifier = Modifier.height(20.dp))

@@ -8,6 +8,17 @@ object GrayscaleController {
     private const val DALTONIZER_MODE = "accessibility_display_daltonizer"
     private const val MONOCHROMACY = 0
 
+    fun isGrayscaleEnabled(context: Context): Boolean? {
+        return try {
+            val resolver = context.contentResolver
+            val enabled = Settings.Secure.getInt(resolver, DALTONIZER_ENABLED, 0) == 1
+            val mode = Settings.Secure.getInt(resolver, DALTONIZER_MODE, MONOCHROMACY)
+            enabled && mode == MONOCHROMACY
+        } catch (exception: SecurityException) {
+            null
+        }
+    }
+
     fun setGrayscale(context: Context, enabled: Boolean): Boolean {
         return try {
             val resolver = context.contentResolver

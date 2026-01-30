@@ -23,6 +23,9 @@ class ScheduleViewModel(application: Application) : AndroidViewModel(application
     private val _permissions = MutableStateFlow(refreshPermissionState())
     val permissions: StateFlow<PermissionState> = _permissions
 
+    private val _grayscaleEnabled = MutableStateFlow(GrayscaleController.isGrayscaleEnabled(application))
+    val grayscaleEnabled: StateFlow<Boolean?> = _grayscaleEnabled
+
     init {
         viewModelScope.launch {
             prefs.scheduleFlow.collect { schedule ->
@@ -42,8 +45,16 @@ class ScheduleViewModel(application: Application) : AndroidViewModel(application
         _permissions.value = refreshPermissionState()
     }
 
+    fun refreshGrayscaleState() {
+        _grayscaleEnabled.value = GrayscaleController.isGrayscaleEnabled(getApplication())
+    }
+
     fun setGrayscale(enabled: Boolean): Boolean {
-        return GrayscaleController.setGrayscale(getApplication(), enabled)
+        val success = GrayscaleController.setGrayscale(getApplication(), enabled)
+        if (success) {
+            _grayscaleEnabled.value = enabled
+        }
+        return success
     }
 
     private fun refreshPermissionState(): PermissionState {
