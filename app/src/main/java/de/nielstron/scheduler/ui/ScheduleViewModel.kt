@@ -10,6 +10,8 @@ import de.nielstron.scheduler.data.SchedulePreferences
 import de.nielstron.scheduler.model.Schedule
 import de.nielstron.scheduler.scheduler.AlarmScheduler
 import de.nielstron.scheduler.util.GrayscaleController
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -17,6 +19,7 @@ import java.time.LocalTime
 
 class ScheduleViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = SchedulePreferences(application)
+    private var applyScheduleJob: Job? = null
 
     private val _schedule = MutableStateFlow(Schedule.default())
     val schedule: StateFlow<Schedule> = _schedule
@@ -79,12 +82,16 @@ class ScheduleViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun applyScheduleNow(schedule: Schedule) {
-        if (!schedule.enabled) {
-            setGrayscale(false)
-            return
+        applyScheduleJob?.cancel()
+        applyScheduleJob = viewModelScope.launch {
+            delay(500)
+            if (!schedule.enabled) {
+                setGrayscale(false)
+                return@launch
+            }
+            val shouldEnable = isWithinSchedule(schedule, LocalTime.now())
+            setGrayscale(shouldEnable)
         }
-        val shouldEnable = isWithinSchedule(schedule, LocalTime.now())
-        setGrayscale(shouldEnable)
     }
 
     private fun isWithinSchedule(schedule: Schedule, now: LocalTime): Boolean {
