@@ -3,6 +3,14 @@
 Greyscale Scheduler toggles system-wide grayscale on a daily schedule and lets you
 manually test the toggle from the app.
 
+## Why?
+
+For me this is useful because I want to have grayscale automatically activate when entering bedtime mode, but also be able to quickly turn greyscale mode off, and only greyscale mode.
+If I turn off bedtime mode completely, tons of messages appear on my notifications, which I don't want to see.
+The accessibility color correction settings can not override bedtime mode greyscale mode (yes this is stupid, appearently the color correction and bedtime grayscale mode are two separate things).
+The accessibility color correction settings can not be scheduled individually.
+Hence this ugly hack.
+
 ## Build and Install
 
 Install required tools:
