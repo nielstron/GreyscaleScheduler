@@ -5,6 +5,7 @@ import android.os.Build
 import android.provider.Settings
 import android.text.format.DateFormat
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -32,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -252,11 +255,13 @@ fun ScheduleScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PermissionHelpScreen(
     secureSettingsGranted: Boolean,
     onBack: () -> Unit,
 ) {
+    BackHandler(onBack = onBack)
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
     val uriHandler = LocalUriHandler.current
@@ -281,7 +286,21 @@ private fun PermissionHelpScreen(
     }
     val scrollState = rememberScrollState()
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Grant permissions") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
         SelectionContainer {
             Column(
                 modifier = Modifier
@@ -291,11 +310,6 @@ private fun PermissionHelpScreen(
                     .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.Top,
             ) {
-                Text(
-                    text = "Enable WRITE_SECURE_SETTINGS",
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "This app toggles system-wide grayscale by writing secure settings. Android requires the privileged permission WRITE_SECURE_SETTINGS, which cannot be granted by the app itself.",
                     style = MaterialTheme.typography.bodyMedium,
@@ -423,11 +437,6 @@ private fun PermissionHelpScreen(
                             }
                         )
                     }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedButton(onClick = onBack) {
-                    Text("Back")
                 }
             }
         }

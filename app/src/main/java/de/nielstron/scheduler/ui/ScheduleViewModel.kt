@@ -34,7 +34,6 @@ class ScheduleViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             prefs.scheduleFlow.collect { schedule ->
                 _schedule.value = schedule
-                applyScheduleNow(schedule)
             }
         }
     }
@@ -53,7 +52,6 @@ class ScheduleViewModel(application: Application) : AndroidViewModel(application
 
     fun refreshGrayscaleState() {
         _grayscaleEnabled.value = GrayscaleController.isGrayscaleEnabled(getApplication())
-        applyScheduleNow(_schedule.value)
     }
 
     fun setGrayscale(enabled: Boolean): Boolean {
